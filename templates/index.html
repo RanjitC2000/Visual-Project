@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Visualizations</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://d3js.org/d3.v6.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="visualizationmap">
+      <p>Global Map of Emissions</p>
+        <svg id="my_dataviz" width="500" height="315"></svg>
+        <script src="static/js/GeoMap.js"></script>
+    </div>
+    <div class="visualizationwithmap" id = "VizMap1">
+    <p>Countrywise Emissions</p>
+    <div id="mydataviz"></div>
+    <script src="static/js/barChart.js"></script>
+    </div>
+    <div class="visualizationwithmap" id = "Viz1">
+    <p>Worldwide Yearly Emissions</p>
+    <div id="mydataviz3"></div>
+    <script src="static/js/Histo.js"></script>
+    </div>
+    <div class="visualization" id = "Vizwithmap2">
+      <p>Countries Shares of Emissions</p>
+    <div id="mydataviz2"></div>
+    <script src="static/js/treemap.js"></script>
+    </div>
+    <div class="visualization" id = "Viz2">
+    <p>Land Cover that is Climate Regulating</p>
+    <div id="mydataviz4"></div>
+    <script src="static/js/pcp.js"></script>
+    </div>
+  </div>
+</body>
+</html>
