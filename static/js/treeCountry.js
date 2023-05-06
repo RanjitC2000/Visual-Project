@@ -15,9 +15,8 @@ var svg_2 = d3.select("#mydataviz2")
 
 // read json data
 d3.json("/tree").then( function(data) {
-  d3.select("#TreeTitle").text("Countries Renewable Energy Generation is " + (data.total/10**6).toFixed(2) + " Million GWh")
   let select_country = "";
-
+  d3.select("#TreeTitle").text("Tree Map of '" + data.name + "' : Renewable Energy Generation is " + (data.total/10**6).toFixed(2)+ " Million GWh")
   console.log(data)
   // Give the data to this cluster layout:
   var root = d3.hierarchy(data).sum(function(d){ return d.value}) // Here the size of each leave is given in the 'value' field in input data
@@ -56,34 +55,35 @@ d3.json("/tree").then( function(data) {
       .style("stroke", "white")
       .style("fill", function(d){ return color(d.parent.data.name)} )
       .style("opacity", function(d){ return opacity(d.data.value)})
-      // .on("mouseover", function(d) {
-      //   d3.select(this).style("fill", "#F7F79F")
-      //   d3.select(this).style("opacity", 1)
-      //   d3.select(this).style("stroke", "white")
-      //   d3.select(this).style("stroke-width", 3)
-      //   d3.select(this).style("cursor", "pointer")
-      // })
-      // .on("mouseout", function(d) {
-      //   d3.select(this).style("fill", function(d){ return color(d.parent.data.name)} )
-      //   d3.select(this).style("opacity", function(d){ return opacity(d.data.value)})
-      //   d3.select(this).style("stroke", "white")
-      //   d3.select(this).style("stroke-width", 1)
-      // })
-      .on("click", function(d,i){
-        select_country = i.data.name
-        $.ajax({
-          type: "POST",
-          url: "/tree",
-          data: JSON.stringify({'key': select_country}),
-          contentType : "application/json",
-          dataType: "json",
-        })
-        if (select_country != "") {
-          d3.select("#mydataviz2").selectAll("*").remove();
-          d3.select("#mydataviz2").append("script").attr("src", "static/js/treeCountry.js");
-        }
-      }
-      )
+    //   .on("mouseover", function(d) {
+    //     d3.select(this).style("fill", "#F7F79F")
+    //     d3.select(this).style("opacity", 1)
+    //     d3.select(this).style("stroke", "white")
+    //     d3.select(this).style("stroke-width", 3)
+    //     d3.select(this).style("cursor", "pointer")
+    //   })
+    //   .on("mouseout", function(d) {
+    //     d3.select(this).style("fill", function(d){ return color(d.parent.data.name)} )
+    //     d3.select(this).style("opacity", function(d){ return opacity(d.data.value)})
+    //     d3.select(this).style("stroke", "white")
+    //     d3.select(this).style("stroke-width", 1)
+    //   })
+      .on("dblclick", function(d) {
+            select_country = "-1"
+            $.ajax({
+              type: "POST",
+              url: "/tree",
+              data: JSON.stringify({'key': select_country}),
+              contentType : "application/json",
+              dataType: "json",
+            })
+            if (select_country != "") {
+              d3.select("#mydataviz2").selectAll("*").remove();
+              d3.select("#mydataviz2").append("script").attr("src", "static/js/treemap.js");
+              
+            }
+          }
+          )
 
   // and to add the text labels
   // svg_2

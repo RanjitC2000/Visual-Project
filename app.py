@@ -19,6 +19,8 @@ CORS(app)
 
 selected_country_map = ""
 selected_industry_hist = ""
+selected_country_tree = "-1"
+treemap = {}
 
 df = pd.read_csv('static/data/_CO822C_Emissions_Intensities%2C_and_Emissions_Multipliers.csv')
 df = df[df['CTS_Name'] == 'CO2 Emissions']
@@ -27,12 +29,21 @@ df_land = df_land[df_land['ISO2'].notnull()]
 df_land = df_land[df_land['Climate_Influence'] == 'Climate regulating']
 
 df_energy = pd.read_csv('static/data/Energy_Transition.csv')
+df_energy = df_energy[df_energy['Indicator'] == 'Electricity Generation']
+df_energy = df_energy[df_energy['Energy_Type'] == 'Total Renewable']
+df_energy = df_energy[df_energy['ISO2'].notnull()]
+df_energy['Value'] = df_energy.iloc[:,12:].sum(axis=1)
+df_energy_Tech = df_energy.copy()
+df_energy = df_energy.groupby(['Country', 'ISO2', 'ISO3']).sum()
+df_energy.reset_index(inplace=True)
+
+df_energy_Tech = df_energy_Tech.groupby(['Country', 'ISO2', 'ISO3', 'Technology']).sum()
+df_energy_Tech.reset_index(inplace=True)
+
 
 df['Value'] = df.iloc[:, 12:].sum(axis=1)
 df_select_country = df.groupby(['Country', 'ISO2', 'ISO3', 'Industry']).sum()
 df_select_country.reset_index(inplace=True)
-#write to csv
-df_select_country.to_csv('static/data/df_select_country.csv')
 df = df.groupby(['Country', 'ISO2','ISO3']).sum()
 df.reset_index(inplace=True)
 df = df.sort_values(by='Value', ascending=False)
@@ -71,8 +82,10 @@ kmeans_res = kmeans.fit_predict(scaled_df)
 def index():
     global selected_country_map
     global selected_industry_hist
+    global selected_country_tree
     selected_country_map = ""
     selected_industry_hist = ""
+    selected_country_tree = "-1"
     return render_template('index.html')
 
 @app.route('/bar', methods=['GET', 'POST'])
@@ -100,24 +113,6 @@ def bar():
         df_bar.columns = ['value1', 'value2']
     return jsonify(df_bar.to_dict(orient='records'))
 
-df_tree = df.copy()
-
-df_continent = pd.read_csv('static/data/Continents.csv')
-df_continent = df_continent[['Country', 'Continent']]
-df_tree = pd.merge(df_tree, df_continent, on='Country', how='left')
-df_tree = df_tree[['ISO2', 'Value', 'Continent']]
-df_tree['Value'] = df_tree['Value'].round(2)
-children = []
-for continent in df_tree['Continent'].unique():
-    df_tree_continent = df_tree[df_tree['Continent'] == continent]
-    children_country = []
-    for country in df_tree_continent['ISO2']:
-        value = df_tree_continent[df_tree_continent['ISO2'] == country]['Value'].values[0]
-        percent = round(value * 100/ df_tree['Value'].sum(),2)
-        children_country.append({'name': country, 'value': value, 'percent': percent})
-    children.append({'name': continent, 'children': children_country})
-treemap = {"children": children}
-
 df_map = df.copy()
 df_pop = pd.read_csv('static/data/pop.csv')
 df_map = pd.merge(df_map, df_pop, on="ISO3", how='left')
@@ -133,8 +128,44 @@ def map():
         selected_country_map = selected_country_map['key']
     return jsonify(df_map.to_dict(orient='records'))
 
-@app.route('/tree')
+@app.route('/tree',methods=['GET','POST'])
 def tree():
+    global selected_country_tree
+    global treemap
+    if request.method == 'POST':
+        selected_country_tree = request.get_json()
+        selected_country_tree = selected_country_tree['key']
+    print(selected_country_tree)
+    if selected_country_tree != "-1":
+        df_tree = df_energy_Tech[df_energy_Tech['ISO2'] == selected_country_tree]
+        selected_country_tree_name = df_tree['Country'].iloc[0]
+        df_tree = df_tree[['Technology', 'Value']]
+        df_tree['Value'] = df_tree['Value'].round(2)
+        df_tree.columns = ['name', 'value']
+        children = []
+        for tech in df_tree['name'].unique():
+            value = df_tree[df_tree['name'] == tech]['value'].values[0]
+            percent = round(value * 100/ df_tree['value'].sum(),2)
+            children.append({'name': tech, 'value': value, 'percent': percent})
+        treemap = {"children": children, "name": selected_country_tree_name, "total": round(df_tree['value'].sum(),2)}
+    else:
+        df_tree = df_energy.copy()
+        df_continent = pd.read_csv('static/data/Continents1.csv')
+        df_continent = df_continent[['ISO3','Continent']]
+        df_tree = pd.merge(df_tree, df_continent, on='ISO3', how='left')
+        df_tree = df_tree[['ISO2', 'Value', 'Continent']]
+        df_tree['Value'] = df_tree['Value'].round(2)
+        df_tree = df_tree.sort_values(by='Value', ascending=False)
+        children = []
+        for continent in df_tree['Continent'].unique():
+            df_tree_continent = df_tree[df_tree['Continent'] == continent]
+            children_country = []
+            for country in df_tree_continent['ISO2']:
+                value = df_tree_continent[df_tree_continent['ISO2'] == country]['Value'].values[0]
+                percent = round(value * 100/ df_tree['Value'].sum(),2)
+                children_country.append({'name': country, 'value': value, 'percent': percent})
+            children.append({'name': continent, 'children': children_country})
+        treemap = {"children": children, "total": round(df_tree['Value'].sum(),2)}
     return jsonify(treemap)
 
 @app.route('/pcp')
