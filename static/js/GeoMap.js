@@ -49,19 +49,37 @@ d3.csv("static/data/map.csv", function(d) {
 
   //on clicking a country console log the country name
   let mouseClick = function(error,d) {
-    select_country = d.id
-    $.ajax({
-      type: "POST",
-      url: "/map",
-      data: JSON.stringify({'key': select_country}),
-      contentType : "application/json",
-      dataType: "json",
-    })
-    if (select_country != "") {
-      d3.select("#mydataviz").selectAll("*").remove();
-      d3.select("#mydataviz").append("script").attr("src", "static/js/barHori.js");
-      d3.select("#mydataviz3").selectAll("*").remove();
-      d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
+    if (select_country != d.id){
+      select_country = d.id
+      $.ajax({
+        type: "POST",
+        url: "/map",
+        data: JSON.stringify({'key': select_country}),
+        contentType : "application/json",
+        dataType: "json",
+      })
+      if (select_country != "") {
+        d3.select("#mydataviz").selectAll("*").remove();
+        d3.select("#mydataviz").append("script").attr("src", "static/js/barHori.js");
+        d3.select("#mydataviz3").selectAll("*").remove();
+        d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
+      }
+    }
+    else{
+      select_country = ""
+      $.ajax({
+        type: "POST",
+        url: "/map",
+        data: JSON.stringify({'key': select_country}),
+        contentType : "application/json",
+        dataType: "json",
+      })
+      if (select_country == "") {
+        d3.select("#mydataviz").selectAll("*").remove();
+        d3.select("#mydataviz").append("script").attr("src", "static/js/barChart.js");
+        d3.select("#mydataviz3").selectAll("*").remove();
+        d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
+      }
     }
   }
 

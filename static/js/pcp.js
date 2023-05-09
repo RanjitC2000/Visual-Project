@@ -9,8 +9,7 @@ d3.json('/pcp').then(function(data) {
   plot_width = width_4 + 130;
 
   data = JSON.parse(data);
-
-  var color = ['red','blue','green']
+  var color = ['seagreen','orangered','mediumslateblue']
   dimensions = Object.keys(data['data'][0]).filter(function(d){ return d != 'color' })
 
   var categories = ['base_egg_steps','base_happiness','experience_growth','percentage_male','type1', 'type2','generation', 'is_legendary']
@@ -65,7 +64,7 @@ d3.json('/pcp').then(function(data) {
       d3.selectAll(".line")
           .transition().duration(200).delay(300)
           .style("stroke", function(d){ return( color[d.color] ) })
-          .style("stroke-width", "0.5px")
+          .style("stroke-width", "1px")
           .style("opacity", "1")
 
       // console.log(data.data.indexOf(d))

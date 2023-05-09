@@ -12,9 +12,9 @@ var svg_1 = d3.select("#mydataviz")
 .append("g")
   .attr("transform", `translate(${width_1/2+margin_1.left}, ${height_1/2+margin_1.top})`);
 
-d3.json('/bar').then( function(data) {
-  console.log(data)
+d3.select("#barTitle").text("Worldwide Yearly Emissions");
 
+d3.json('/bar').then( function(data) {
 // Scales
 var x = d3.scaleBand()
     .range([0, 2 * Math.PI])
@@ -24,32 +24,88 @@ var y = d3.scaleRadial()
     .range([innerRadius, outerRadius])
     .domain([0, 150000]);
 
+//add colors based on d.value2 there are 6 of them
+var color = d3.scaleOrdinal()
+    .domain(["1", "2", "3", "4", "5", "6"])
+    //use colorbrewer dark2 colors
+    .range(["#7570b3","#d95f02","#1b9e77","#e7298a","#66a61e","#e6ab02"])
+
 // Add the bars
 svg_1.append("g")
   .selectAll("path")
   .data(data)
   .join("path")
-    .attr("fill", "#69b3a2")
+    .attr("fill", d => color(d.value2))
     .attr("d", d3.arc()
         .innerRadius(innerRadius)
-        .outerRadius(d => y(d['value2']))
+        .outerRadius(d => y(d['value3']))
         .startAngle(d => x(d.value1))
         .endAngle(d => x(d.value1) + x.bandwidth())
         .padAngle(0.01)
         .padRadius(innerRadius))
 
+//Add an axis leave some between the first and last bar
+var yAxis = svg_1.append("g")
+  .attr("text-anchor", "middle");
+
+var yTick = yAxis
+  .selectAll("g")
+  .data(y.ticks(3).slice(1))
+  .join("g");
+
+yTick.append("circle")
+  .attr("fill", "none")
+  .attr("stroke", "white")
+  .attr("stroke-opacity", 0.5)
+  .attr("r", y);
+
+yTick.append("text")
+  .attr("y", d => -y(d))
+  .attr("dy", "0.35em")
+  .text(y.tickFormat(5, "s"));
+
+//reduce sizes of tick labels
+yTick.selectAll("text")
+  .attr("font-size", "10px")
+  .attr("fill", "white")
+  .style("font-family", "sans-serif")
+
+// yTick.append("text")
+//   .attr("y", d => -y(d) - 10)
+//   .attr("dy", "0.35em")
+//   .text("GWh");
+
 // Add the labels
 svg_1.append("g")
-    .selectAll("g")
-    .data(data)
-    .join("g")
-      .attr("text-anchor", function(d) { return (x(d.value1) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start"; })
-      .attr("transform", function(d) { return "rotate(" + ((x(d.value1) + x.bandwidth() / 2) * 180 / Math.PI - 90) + ")"+"translate(" + (y(d['value2'])+10) + ",0)"; })
-    .append("text")
-      .text(function(d){return(d.value1)})
-      .attr("transform", function(d) { return (x(d.value1) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "rotate(180)" : "rotate(0)"; })
-      .style("font-size", "11px")
-      .attr("alignment-baseline", "middle")
-      .attr("fill", "white")
+  .selectAll("g")
+  .data(data)
+  .join("g")
+    .attr("text-anchor", function(d) { return (x(d.value1) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start"; })
+    .attr("transform", function(d) { return "rotate(" + ((x(d.value1) + x.bandwidth() / 2) * 180 / Math.PI - 90) + ")"+"translate(" + (y(d['value3']) +5) + ",0)"; })
+  .append("text")
+    .text(function(d){return(d.value1)})
+    .attr("transform", function(d) { return (x(d.value1) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "rotate(180)" : "rotate(0)";})
+    .style("font-size", "11px")
+    .attr("alignment-baseline", "middle")
+    .attr("fill", "white")
+    .style("font-family", "sans-serif")
 
 });
+
+
+// // Add the labels
+// svg_1.append("g")
+//     .selectAll("g")
+//     .data(data)
+//     .join("g")
+//       .attr("text-anchor", function(d) { return (x(d.value1) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start"; })
+//       .attr("transform", function(d) { return "rotate(" + ((x(d.value1) + x.bandwidth() / 2) * 180 / Math.PI - 90) + ")"+"translate(" + (y(d['value3'])+10) + ",0)"; })
+//     .append("text")
+//       .text(function(d){return(d.value1)})
+//       .attr("transform", function(d) { return (x(d.value1) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "rotate(180)" : "rotate(0)"; })
+//       .style("font-size", "11px")
+//       .attr("alignment-baseline", "middle")
+//       .attr("fill", "white")
+//       .style("font-family", "sans-serif")
+
+// });

@@ -14,42 +14,25 @@ var svg_1 = d3.select("#mydataviz")
 
 // Parse the Data
 d3.json("/bar").then( function(data) {
-    console.log(data)
-    let select_industry = "";
-    // X axis
-    // var x = d3.scaleBand()
-    //     .range([ 0, width_1 ])
-    //     .domain(data.map(function(d) { return d.value1; }))
-    //     .padding(0.2);
-    // svg_1.append("g")
-    //     .attr("transform", `translate(0, ${height_1})`)
-    //     .call(d3.axisBottom(x))
-    //     .style("color", "white")
-    //     .selectAll("text")
-    //         .attr("transform", "translate(-10,0)rotate(-45)")
-    //         .style("text-anchor", "end")
-    //         .style("color", "white");
-
-    // // Add Y axis
-    // var y = d3.scaleLinear()
-    //     .domain([0,d3.max(data, function(d) { return +d.value2; })])
-    //     .range([ height_1, 0]);
-    // svg_1.append("g")
-    //     .call(d3.axisLeft(y))
-    //     .style("color", "white");
-
-    // // Bars
-    // svg_1.selectAll("mybar")
-    //     .data(data)
-    //     .enter()
-    //     .append("rect")
-    //         .attr("x", function(d) { return x(d.value1); })
-    //         .attr("y", function(d) { return y(d.value2); })
-    //         .attr("width", x.bandwidth())
-    //         .attr("height", function(d) { return height_1 - y(d.value2); })
-    //         .attr("fill", "#69b3a2")
-
-    //create horizontal bar chart   
+    data = JSON.parse(data);
+    if (data.Year){
+        if (data.Country){
+            if(data.Industry){
+                d3.select("#barTitle").text(data.Industry + " Industry of " + data.Country + "'s " + data.Year+" Emmisions in Millions of Metric tons of CO2");
+            }
+            else{
+                d3.select("#barTitle").text(data.Country + "'s " + data.Year+" Emmisions in Millions of Metric tons of CO2");
+            }
+        }
+        else{
+            d3.select("#barTitle").text(data.Year+" Worldwide Emmisions in Millions of Metric tons of CO2");
+        }
+    }
+    else{
+        d3.select("#barTitle").text(data.Country + "'s Industry Emmisions in Millions of Metric tons of CO2");
+    }
+    data = data.data;
+    let select_industry = "";  
     var x = d3.scaleLinear()
         .domain([0, (d3.max(data, function(d) { return +d.value2; }))*1.2])
         .range([0, width_1]);
@@ -58,13 +41,20 @@ d3.json("/bar").then( function(data) {
         .ticks(7)
     svg_1.append("g")
         .attr("transform", `translate(0, ${height_1})`)
+        .attr("class", "myXaxis")
         .call(xAxis)
+        .transition()
+        .duration(1000)
         .style("color", "white");
 
     var y = d3.scaleBand()
         .range([0, height_1])
         .domain(data.map(function(d) { return d.value1; }))
         .padding(.1);
+    
+    var color = d3.scaleOrdinal()
+        .domain(["1", "2", "3", "4", "5", "6"])
+        .range(["#7570b3","#d95f02","#1b9e77","#e7298a","#66a61e","#e6ab02"])
 
     let mouseClick = function(error,d) {
             console.log(d)
@@ -103,27 +93,38 @@ d3.json("/bar").then( function(data) {
         .join("rect")
         .attr("x", x(0) )
         .attr("y", function(d) { return y(d.value1); })
-        .attr("width", function(d) { return x(d.value2); })
+        .attr("width", function(d) { return x(0); })
         .attr("height", y.bandwidth() )
-        .on("click", mouseClick)
-        .style("fill", "#69b3a2")
+        .style("fill", d => color(d.value2))
         .transition()
-        .duration(500)
-        .attr("x", x(0) )
-        .attr("y", function(d) { return y(d.value1); })
+        .duration(1000)
         .attr("width", function(d) { return x(d.value2); })
-        .attr("height", y.bandwidth() );
+        
+
+    svg_1.selectAll("rect")
+        .on("click", mouseClick)
+        
         
 
     svg_1.append("g")
+        .attr("class", "myYaxis")
         .call(d3.axisLeft(y))
+        .transition()
+        .duration(1000)
+        .style("color", "white")
         //keep the y axis tick labels to appear on the right side of the y axis
         .selectAll("text")
-        .attr("transform", "translate(20,0)")
+        //if the length of the text is less that 5 characters make the font size bigger
+        .style("font-size", function(d){ if (d.length < 5) {return "20px"} else {return "10px"}})
+        .attr("transform", function(d){ if (d.length < 5) {return "translate(150,0)"} else {return "translate(20,0)"}})
         .style("text-anchor", "start")
-        .style("color", "white")
-        .on("click", mouseClick);
+        .style("color", "white");
 
+    //add click event to the y axis tick labels
+    svg_1.selectAll(".myYaxis")
+        .selectAll("text")
+        .on("click", mouseClick)
+    
 
 
     //add text to bars

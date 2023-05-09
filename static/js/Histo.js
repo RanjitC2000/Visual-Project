@@ -15,27 +15,42 @@ var svg_3 = d3.select("#mydataviz3")
 
 // get the data
 d3.json("/hist").then(function(data) {
-  console.log(data);
+  data = JSON.parse(data);
+  data_name = data.name;
+  //if data.Industry exists then data_industry = data.Industry
+  if (data_name.length == 1 ){
+    if (data.Industry) {
+      data_industry = data.Industry;
+      d3.select("#histTitle").text(data_industry + " Industry of " + data_name[0] + "'s Yearly Emmisions in Millions of Metric tons of CO2");
+    }
+    else{
+    d3.select("#histTitle").text(data_name[0] + "'s Yearly Emmisions in Millions of Metric tons of CO2");
+    }
+  }
+  else{
+    d3.select("#histTitle").text("Worldwide Yearly Emissions in Millions of Metric tons of CO2");
+  }
+  data = data.data;
+  console.log(data_name);
   let numColumns = Object.keys(data[0]).length; // assuming all objects in the array have the same keys
   let sums = {};
+  let selected_year_range = "";
 
   // initialize sums object with keys for each column and values of 0
   for (let i = 0; i < numColumns; i++) {
     sums[Object.keys(data[0])[i]] = 0;
   }
-
   data.forEach(function(d) {
     // add each value to the corresponding sum
     Object.keys(d).forEach(function(key) {
       sums[key] += d[key];
     });
   });
-
   //with bin size as 4 sum up the values i.e, first bin = sums[:4].values().sum() and so on
   let binSize = 4;
   let binSums = [];
   let binSum = 0;
-  let binIndex = 0;
+  let binIndex = 1;
   Object.keys(sums).forEach(function(key) {
     binSum += sums[key];
     if (binIndex % binSize == 0) {
@@ -68,10 +83,14 @@ d3.json("/hist").then(function(data) {
   svg_3.append("g")
     .attr("transform", `translate(0, ${height_3})`)
     .call(xAxis)
+    .transition()
+    .duration(1000)
     .style("color", "white");
 
   svg_3.append("g")
     .call(d3.axisLeft(y))
+    .transition()
+    .duration(1000)
     .style("color", "white");
 
   svg_3.selectAll("rect")
@@ -81,14 +100,29 @@ d3.json("/hist").then(function(data) {
       .attr("y", function(d) { return y(0); })
       .attr("width", x.bandwidth())
       .attr("height", function(d) { return height_3 - y(0); })
-      .style("fill", "#69b3a2")
+      .style("fill", "seagreen")
       .transition()
       .duration(500)
       .attr("y", function(d) { return y(d); })
       .attr("height", function(d) { return height_3 - y(d); });
 
-  // change the bars into a icon
+  let mouseClick = function(error,d) {
+    selected_year_range = bins[binSums.indexOf(d)];
+    $.ajax({
+      type: "POST",
+      url: "/hist",
+      data: JSON.stringify({'year_range': selected_year_range}),
+      contentType : "application/json",
+      dataType: "json",
+    })
+    if (selected_year_range != "") {
+      d3.select("#mydataviz").selectAll("*").remove();
+      d3.select("#mydataviz").append("script").attr("src", "static/js/barHori.js");
+    }
+  }
 
+  svg_3.selectAll("rect")
+    .on("click", mouseClick);
 
 
 });
