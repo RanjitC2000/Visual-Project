@@ -34,7 +34,7 @@ var y = d3.scaleRadial()
 var color = d3.scaleOrdinal()
     .domain(["1", "2", "3", "4", "5", "6"])
     //use colorbrewer dark2 colors
-    .range(["#7570b3","#d95f02","#1b9e77","#e7298a","#66a61e","#e6ab02"])
+    .range(['mediumslateblue','orangered','seagreen','deeppink','chartreuse','gold'])
 
 var tooltip = d3.select("#mydataviz")
     .append("div")
