@@ -8,17 +8,23 @@
     height: 96vh;
     background-color: rgb(47, 47, 47);
     }
+/* CSS for tooltip */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+    }
 
 /* CSS for visualization divs */
 .visualizationmap {
-flex: 0 0 35%; /* Adjust to desired width of each visualization */
+flex: 0 0 32%; /* Adjust to desired width of each visualization */
 height: 48%;
 padding: 10px;
 /*black border*/
 box-sizing: border-box;
 }
 .visualizationwithmap {
-flex: 0 0 30%; /* Adjust to desired width of each visualization */
+flex: 0 0 32%; /* Adjust to desired width of each visualization */
 height: 48%;
 padding: 10px;
 /*black border*/

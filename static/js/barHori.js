@@ -75,7 +75,32 @@ d3.json("/bar").then( function(data) {
               d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
             }
           }
-        
+    var tooltip = d3.select("#mydataviz")
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+        .style("background-color", "rgb(47, 47, 47)")
+        .style("color", "white")
+        .style("border-radius", "5px")
+        .style("padding", "10px")
+    
+    let mouseOver = function(error,d) {
+        tooltip
+            .transition()
+            .duration(200)
+        tooltip
+            .style("opacity", 0.9)
+            .html("Emissions: " + (d.value2).toFixed(2) + " Million Metric Tons of CO2")
+            .style("left", error.x - 600 + "px")
+            .style("top", error.y - 300 + "px")
+    }
+    let mouseLeave = function(d) {
+        tooltip
+            .transition()
+            .duration(200)
+            .style("opacity", 0)
+    }
+
 
     // svg_1.selectAll("rect")
     //     .data(data)
@@ -103,6 +128,8 @@ d3.json("/bar").then( function(data) {
 
     svg_1.selectAll("rect")
         .on("click", mouseClick)
+        .on("mouseover", mouseOver)
+        .on("mouseleave", mouseLeave)
         
         
 
@@ -124,6 +151,9 @@ d3.json("/bar").then( function(data) {
     svg_1.selectAll(".myYaxis")
         .selectAll("text")
         .on("click", mouseClick)
+        .on("mouseover", mouseOver)
+        .on("mouseleave", mouseLeave)
+
     
 
 

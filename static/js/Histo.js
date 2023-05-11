@@ -80,6 +80,32 @@ d3.json("/hist").then(function(data) {
     .domain([0, d3.max(binSums)]).nice()
     .range([height_3, 0]);
 
+  var tooltip = d3.select("#mydataviz3")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "rgb(47, 47, 47)")
+    .style("color", "white")
+    .style("border-radius", "5px")
+    .style("padding", "10px")
+
+  let mouseOver = function(error,d) {
+    tooltip
+      .transition()
+      .duration(200)
+    tooltip
+      .style("opacity", 0.9)
+      .html("Emissions: " + (d).toFixed(2) + " Million Metric Tons")
+      .style("left", error.x - 1200 + "px")
+      .style("top", error.y - 325 + "px")
+  }
+  let mouseLeave = function(d) {
+    tooltip
+      .transition()
+      .duration(200)
+      .style("opacity", 0)
+  }
+
   svg_3.append("g")
     .attr("transform", `translate(0, ${height_3})`)
     .call(xAxis)
@@ -122,7 +148,9 @@ d3.json("/hist").then(function(data) {
   }
 
   svg_3.selectAll("rect")
-    .on("click", mouseClick);
+    .on("click", mouseClick)
+    .on("mouseover", mouseOver)
+    .on("mouseleave", mouseLeave);
 
 
 });

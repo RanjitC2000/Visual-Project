@@ -15,7 +15,7 @@ var svg_2 = d3.select("#mydataviz2")
 
 // read json data
 d3.json("/tree").then( function(data) {
-  d3.select("#TreeTitle").text("Countries Renewable Energy Generation is " + (data.total/10**6).toFixed(2) + " Million GWh")
+  d3.select("#TreeTitle").text(data.Cname +"'s " + "Renewable Energy Generation is " + (data.total/10**6).toFixed(2) + " Million GWh")
   let select_country = "";
   // Give the data to this cluster layout:
   var root = d3.hierarchy(data).sum(function(d){ return d.value}) // Here the size of each leave is given in the 'value' field in input data
@@ -55,6 +55,40 @@ d3.json("/tree").then( function(data) {
       d3.select("#mydataviz2").selectAll("*").remove();
       d3.select("#mydataviz2").append("script").attr("src", "static/js/treemap.js");
     }
+  }
+  var tooltip = d3.select("#mydataviz2")
+  .append("div")
+  .style("opacity", 0)
+  .attr("class", "tooltip")
+  .style("background-color", "rgb(47, 47, 47)")
+  .style("color", "white")
+  .style("border-radius", "5px")
+  .style("padding", "10px")
+
+  let mouseOver = function(d,i) {
+    d3.select(this).style("fill", "darkred")
+    d3.select(this).style("opacity", 1)
+    d3.select(this).style("stroke", "white")
+    d3.select(this).style("stroke-width", 3)
+    d3.select(this).style("cursor", "pointer")
+    tooltip
+      .transition()
+      .duration(200)
+    tooltip
+      .style("opacity", 0.9)
+      .html("Energy Generation: " + (i.value/10**6).toFixed(2) + " Million GWh")
+      .style("left", d.x - 100 + "px")
+      .style("top", d.y - 700 + "px")
+  }
+  let mouseLeave = function(d) {
+    d3.select(this).style("fill", function(d){ return color(d.parent.data.name)} )
+    d3.select(this).style("opacity", function(d){ return opacity(d.data.value)})
+    d3.select(this).style("stroke", "white")
+    d3.select(this).style("stroke-width", 1)
+    tooltip
+      .transition()
+      .duration(200)
+      .style("opacity", 0)
   }
 
 
@@ -107,6 +141,8 @@ d3.json("/tree").then( function(data) {
         .data(root.leaves())
         .join("rect")
           .on("dblclick", mouseClick)
+          .on("mouseover", mouseOver)
+          .on("mouseleave", mouseLeave)
           .style("cursor", "pointer")
 
 
@@ -150,6 +186,8 @@ d3.json("/tree").then( function(data) {
     .data(root.leaves())
     .join("text")
       .on("dblclick", mouseClick)
+      .on("mouseover", mouseOver)
+      .on("mouseleave", mouseLeave)
       .style("cursor", "pointer")
 
   svg_2
@@ -177,6 +215,8 @@ d3.json("/tree").then( function(data) {
     .data(root.leaves())
     .join("text")
       .on("dblclick", mouseClick)
+      .on("mouseover", mouseOver)
+      .on("mouseleave", mouseLeave)
       .style("cursor", "pointer")
 
   

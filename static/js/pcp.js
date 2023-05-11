@@ -52,12 +52,12 @@ d3.json('/pcp').then(function(data) {
           .transition().duration(200)
           .style("stroke-width", "10px")
 
-      // tooltip.transition()
-      //     .duration(200)
-      //     .style("opacity", .9);
-      // tooltip.html("Pokemon Name: " + data['name'][data.data.indexOf(i)] + "<br/>" + "<br/>" + "Dimensions: " + "<br/>" + dimensions.map(function(p) { return p + ": " + i[p]; }).join("<br/>"))
-      //     .style("left", 1285 + "px")
-      //     .style("top", 300 + "px");
+      tooltip.transition()
+          .duration(200)
+          .style("opacity", .9);
+      tooltip.html("Country " + data['name'][data.data.indexOf(i)])
+          .style("left", (d.x - 800) + "px")
+          .style("top", (d.y-700) + "px");
   }
 
   var doNotHighlight = function(event,d){
@@ -69,9 +69,9 @@ d3.json('/pcp').then(function(data) {
 
       // console.log(data.data.indexOf(d))
       
-      // tooltip.transition()
-      //     .duration(500)
-      //     .style("opacity", 0);
+      tooltip.transition()
+          .duration(500)
+          .style("opacity", 0);
   }
 
   function path(d) {
@@ -145,10 +145,13 @@ d3.json('/pcp').then(function(data) {
   //         }
   //     }
   // );
-  // var tooltip = d3.select("#plot").append("div")
-  // .attr("class", "tooltip")
-  // .style("font-size", "13px")
-  // .style("font-weight", "bold")
-  // .style("font-family", "sans-serif")
-  // .style("opacity", 0);
+  var tooltip = d3.select("#mydataviz4")
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+        .style("background-color", "rgb(47, 47, 47)")
+        .style("color", "white")
+        .style("border-radius", "5px")
+        .style("padding", "10px")
+
 });

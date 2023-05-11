@@ -10,7 +10,7 @@ var svg_1 = d3.select("#mydataviz")
   .attr("width", width_1 + margin_1.left + margin_1.right)
   .attr("height", height_1 + margin_1.top + margin_1.bottom)
 .append("g")
-  .attr("transform", `translate(${width_1/2+margin_1.left}, ${height_1/2+margin_1.top})`);
+  .attr("transform", `translate(${width_1/2+margin_1.left + 30}, ${height_1/2+margin_1.top})`);
 
 d3.select("#barTitle").text("Worldwide Yearly Emissions");
 
@@ -29,6 +29,33 @@ var color = d3.scaleOrdinal()
     .domain(["1", "2", "3", "4", "5", "6"])
     //use colorbrewer dark2 colors
     .range(["#7570b3","#d95f02","#1b9e77","#e7298a","#66a61e","#e6ab02"])
+
+var tooltip = d3.select("#mydataviz")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "rgb(47, 47, 47)")
+    .style("color", "white")
+    .style("border-radius", "5px")
+    .style("padding", "10px")
+
+
+let mouseOver = function(error,d) {
+  tooltip
+    .transition()
+    .duration(200)
+  tooltip
+    .style("opacity", 0.9)
+    .html("Emissions: " + (d.value3).toFixed(2) + " Million Metric Tons of CO2")
+    .style("left", error.x - 600 + "px")
+    .style("top", error.y - 350 + "px")
+}
+let mouseLeave = function(d) {
+  tooltip
+    .transition()
+    .duration(200)
+    .style("opacity", 0)
+}
 
 // Add the bars
 svg_1.append("g")
@@ -90,6 +117,14 @@ svg_1.append("g")
     .attr("fill", "white")
     .style("font-family", "sans-serif")
 
+  //add mouseover and mouseleave events to the bars
+  svg_1.selectAll("path")
+    .on("mouseover", mouseOver)
+    .on("mouseleave", mouseLeave)
+
+  svg_1.selectAll("text")
+    .on("mouseover", mouseOver)
+    .on("mouseleave", mouseLeave)
 });
 
 

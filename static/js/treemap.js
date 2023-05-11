@@ -43,6 +43,15 @@ d3.json("/tree").then( function(data) {
     .domain([10, 30])
     .range([.5,1])
 
+  var tooltip = d3.select("#mydataviz2")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "rgb(47, 47, 47)")
+    .style("color", "white")
+    .style("border-radius", "5px")
+    .style("padding", "10px")
+
   let mouseClick = function(d,i){
     select_country = i.data.name
     $.ajax({
@@ -57,6 +66,33 @@ d3.json("/tree").then( function(data) {
       d3.select("#mydataviz2").append("script").attr("src", "static/js/treeCountry.js");
     }
   }
+
+  let mouseOver = function(d,i) {
+    d3.select(this).style("fill", "darkred")
+    d3.select(this).style("opacity", 1)
+    d3.select(this).style("stroke", "white")
+    d3.select(this).style("stroke-width", 3)
+    d3.select(this).style("cursor", "pointer")
+    tooltip
+      .transition()
+      .duration(200)
+    tooltip
+      .style("opacity", 0.9)
+      .html("Energy Generation: " + (i.value/10**6).toFixed(2) + " Million GWh")
+      .style("left", d.x - 100 + "px")
+      .style("top", d.y - 700 + "px")
+  }
+  let mouseLeave = function(d) {
+    d3.select(this).style("fill", function(d){ return color(d.parent.data.name)} )
+    d3.select(this).style("opacity", function(d){ return opacity(d.data.value)})
+    d3.select(this).style("stroke", "white")
+    d3.select(this).style("stroke-width", 1)
+    tooltip
+      .transition()
+      .duration(200)
+      .style("opacity", 0)
+  }
+
 
 
   // use this information to add rectangles:
@@ -79,12 +115,14 @@ d3.json("/tree").then( function(data) {
       //   d3.select(this).style("stroke", "white")
       //   d3.select(this).style("stroke-width", 3)
       //   d3.select(this).style("cursor", "pointer")
+      //   d3.select(this).select("text").style("color", "black")
       // })
       // .on("mouseout", function(d) {
       //   d3.select(this).style("fill", function(d){ return color(d.parent.data.name)} )
       //   d3.select(this).style("opacity", function(d){ return opacity(d.data.value)})
       //   d3.select(this).style("stroke", "white")
       //   d3.select(this).style("stroke-width", 1)
+      //   d3.select(this).select("text").style("color", "white")
       // })
       // .on("click", function(d,i){
       //   select_country = i.data.name
@@ -108,6 +146,8 @@ d3.json("/tree").then( function(data) {
         .data(root.leaves())
         .join("rect")
           .on("click", mouseClick)
+          .on("mouseover", mouseOver)
+          .on("mouseleave", mouseLeave)
           .style("cursor", "pointer")
 
 
@@ -146,16 +186,16 @@ d3.json("/tree").then( function(data) {
       .attr("fill", "white")
 
   //add title to each group
-  svg_2
-    .selectAll("titles")
-    .data(root.descendants().filter(function(d){return d.depth==1}))
-    .enter()
-    .append("text")
-      .attr("x", function(d){ return d.x0})
-      .attr("y", function(d){ return d.y0+21})
-      .text(function(d){ return d.data.name })
-      .attr("font-size", "19px")
-      .attr("fill",  function(d){ return color(d.data.name)} )
+  // svg_2
+  //   .selectAll("titles")
+  //   .data(root.descendants().filter(function(d){return d.depth==1}))
+  //   .enter()
+  //   .append("text")
+  //     .attr("x", function(d){ return d.x0})
+  //     .attr("y", function(d){ return d.y0+21})
+  //     .text(function(d){ return d.data.name })
+  //     .attr("font-size", "19px")
+  //     .attr("fill",  function(d){ return color(d.data.name)} )
 
   // add on click event to the text through a variable
   svg_2
@@ -163,6 +203,8 @@ d3.json("/tree").then( function(data) {
     .data(root.leaves())
     .join("text")
       .on("click", mouseClick)
+      .on("mouseover", mouseOver)
+      .on("mouseleave", mouseLeave)
       .style("cursor", "pointer")
 
   svg_2
@@ -192,6 +234,8 @@ d3.json("/tree").then( function(data) {
     .data(root.leaves())
     .join("text")
       .on("click", mouseClick)
+      .on("mouseover", mouseOver)
+      .on("mouseleave", mouseLeave)
       .style("cursor", "pointer")
 
   
