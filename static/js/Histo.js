@@ -4,6 +4,11 @@ parentDivHeight2 = document.getElementById("Viz1").clientHeight - 50,
 width_3 = parentDivWidth2 - margin_3.left - margin_3.right,
 height_3 = parentDivHeight2 - margin_3.top - margin_3.bottom;
 
+var s = "";
+$.ajax({url: '/get_variable_value'}).done(function (data) {
+  s = data.my_variable;
+})
+
 var container = document.getElementById('mydataviz3');
 if (container.querySelector('svg')) {
   // If there is, remove it
@@ -42,13 +47,14 @@ d3.json("/hist").then(function(data) {
     'North America': 'mediumslateblue',
     'Africa': 'deeppink',
     'Oceania': 'chartreuse',
-    'South America': 'gold'
+    'South America': 'gold',
+    'World': 'darkslategray',
   }
   var color = colors[data.continent];
   data = data.data;
   let numColumns = Object.keys(data[0]).length; // assuming all objects in the array have the same keys
   let sums = {};
-  let selected_year_range = "";
+  let selected_year_range = s;
 
   // initialize sums object with keys for each column and values of 0
   for (let i = 0; i < numColumns; i++) {
@@ -82,7 +88,7 @@ d3.json("/hist").then(function(data) {
   let x = d3.scaleBand()
     .domain(bins)
     .range([0, width_3])
-    .padding(0.1);
+    .padding(0.01);
 
 // change x tick to show start year and end year like 1995-1999
   let xAxis = d3.axisBottom(x)
@@ -135,21 +141,86 @@ d3.json("/hist").then(function(data) {
     .duration(1000)
     .style("color", "white");
 
-  svg_3.selectAll("rect")
+  // if year is selected make that bar highlighted
+  //$.ajax({url: '/get_variable_value'}).done(function (data) {
+//     var s = data.my_variable;
+//     if (s != ""){
+//         d3.select("#mydataviz").append("script").attr("src", "static/js/barHori.js");
+//     }
+//     else{
+//         d3.select("#mydataviz").append("script").attr("src", "static/js/barChart.js");
+//     }
+// })
+  if (s != ""){
+    svg_3.selectAll("rect")
     .data(binSums)
     .join("rect")
       .attr("x", function(d, i) { return x(bins[i]); })
       .attr("y", function(d) { return y(0); })
       .attr("width", x.bandwidth())
       .attr("height", function(d) { return height_3 - y(0); })
-      .style("fill", color)
+      .style("fill", function(d, i) { 
+        return bins[i] == s ? "darkred" : color; })
+      .style("stroke", "white")
+      .style("stroke-width", function(d, i) { return bins[i] == s ? 3 : 1; })
       .transition()
       .duration(500)
       .attr("y", function(d) { return y(d); })
       .attr("height", function(d) { return height_3 - y(d); });
+  }
+  else{
+  svg_3.selectAll("rect")
+  .data(binSums)
+  .join("rect")
+    .attr("x", function(d, i) { return x(bins[i]); })
+    .attr("y", function(d) { return y(0); })
+    .attr("width", x.bandwidth())
+    .attr("height", function(d) { return height_3 - y(0); })
+    .style("fill", color)
+    .style("stroke", "white")
+    .style("stroke-width", 1)
+    .transition()
+    .duration(500)
+    .attr("y", function(d) { return y(d); })
+    .attr("height", function(d) { return height_3 - y(d); });
+  }
+  // svg_3.selectAll("rect")
+  // .data(binSums)
+  // .join("rect")
+  //   .attr("x", function(d, i) { return x(bins[i]); })
+  //   .attr("y", function(d) { return y(0); })
+  //   .attr("width", x.bandwidth())
+  //   .attr("height", function(d) { return height_3 - y(0); })
+  //   .style("fill", color)
+  //   .transition()
+  //   .duration(500)
+  //   .attr("y", function(d) { return y(d); })
+  //   .attr("height", function(d) { return height_3 - y(d); });
 
   let mouseClick = function(error,d) {
+    //make all other bars normal
+    svg_3.selectAll("rect")
+      .style("fill", color)
+      .style("opacity", 1)
+      .style("stroke", "white")
+      .style("stroke-width", 1)
+      .style("cursor", "default")
+    //Highlight the selected bar
+    d3.select(this).style("fill", "darkred")
+    d3.select(this).style("opacity", 1)
+    d3.select(this).style("stroke", "white")
+    d3.select(this).style("stroke-width", 3)
+    d3.select(this).style("cursor", "pointer")
+    if (selected_year_range == bins[binSums.indexOf(d)]) {
+      selected_year_range = "";
+      d3.select(this).style("fill", color)
+      d3.select(this).style("opacity", 1)
+      d3.select(this).style("stroke", "white")
+      d3.select(this).style("stroke-width", 1)
+      d3.select(this).style("cursor", "default")
+    } else {
     selected_year_range = bins[binSums.indexOf(d)];
+    }
     $.ajax({
       type: "POST",
       url: "/hist",
@@ -161,7 +232,32 @@ d3.json("/hist").then(function(data) {
       d3.select("#mydataviz").selectAll("*").remove();
       d3.select("#mydataviz").append("script").attr("src", "static/js/barHori.js");
     }
+    else{
+      $.ajax({url: '/get_continent_value'}).done(function (data) {
+        var a = data.my_variable;
+        if (a == ""){
+            $.ajax({url: '/get_country_value'}).done(function (data) {
+                var b = data.my_variable;
+                if (b == ""){
+                console.log("here1")
+                d3.select("#mydataviz").selectAll("*").remove();
+                d3.select("#mydataviz").append("script").attr("src", "static/js/barChart.js");
+                }
+                else{
+                d3.select("#mydataviz").selectAll("*").remove();
+                d3.select("#mydataviz").append("script").attr("src", "static/js/barHori.js");
+                }})
+        }
+        else{
+            console.log("here2")
+            d3.select("#mydataviz").selectAll("*").remove();
+            d3.select("#mydataviz").append("script").attr("src", "static/js/barHori.js");
+        }
+    })
+    }
   }
+
+  
 
   svg_3.selectAll("rect")
     .on("click", mouseClick)

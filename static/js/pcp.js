@@ -69,7 +69,7 @@ d3.json('/pcp').then(function(data) {
             .style("opacity", .9);
         tooltip.html("Country " + data['name'][data.data.indexOf(i)])
             .style("left", (d.x - 800) + "px")
-            .style("top", (d.y-700) + "px");
+            .style("top", (d.y-750) + "px");
   }
 
   var doNotHighlight = function(event,d){
@@ -255,8 +255,8 @@ var legendclick = function(d,i){
                 case 0: return "Asia";
                 case 1: return "Europe";
                 case 2: return "Africa";
-                case 3: return "North America";
-                case 4: return "South America";
+                case 3: return "N. America";
+                case 4: return "S. America";
                 case 5: return "Oceania";
             }
         }

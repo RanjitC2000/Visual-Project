@@ -74,6 +74,11 @@ df['Country'] = df['Country'].replace('Korea, Rep. of','South Korea')
 df['Country'] = df['Country'].replace('China, P.R.: Hong Kong', 'Hong Kong')
 df = pd.merge(df, df_continent, on='ISO3', how='left')
 
+ISO3_to_ISO2 = df[['ISO3', 'ISO2']]
+ISO3_to_ISO2 = ISO3_to_ISO2.drop_duplicates()
+ISO3_to_ISO2 = ISO3_to_ISO2.set_index('ISO3')
+ISO3_to_ISO2 = ISO3_to_ISO2.to_dict()['ISO2']
+
 df_land['Value'] = df_land.iloc[:, 11:].sum(axis=1)
 pivot_land = df_land.pivot(index='ISO3', columns='CTS_Name', values='Value')
 pivot_land.reset_index(inplace=True)
@@ -182,6 +187,7 @@ def bar():
             df_bar = df_bar.iloc[:30]
             df_bar = df_bar.append(df_bar2)
         df_bar = df_bar[['Country', 'Continent', 'Value']]
+        df_bar = df_bar.iloc[2:]
         df_bar = df_bar.append(df_bar.iloc[0])
         df_bar = df_bar.iloc[1:]
         df_bar.columns = ['value1', 'value2', 'value3']
@@ -203,11 +209,18 @@ def map():
     global selected_country_map
     global selected_industry_hist
     global selected_year_range
+    global selected_continent
+    global selected_country_tree
     if request.method == 'POST':
         selected_country_map = request.get_json()
         selected_country_map = selected_country_map['key']
         selected_industry_hist = "" 
         selected_year_range = ""
+        selected_continent = ""
+        if selected_country_map != "":
+            selected_country_tree = ISO3_to_ISO2[selected_country_map]
+        else:
+            selected_country_tree = "-1"
     return jsonify(df_map.to_dict(orient='records'))
 
 @app.route('/tree',methods=['GET','POST'])
@@ -273,6 +286,8 @@ def pcp():
         'data':list(df_pcp.to_dict().values()),
         'name':pivot_land['ISO3'].tolist()
     }
+    if selected_country_map != "":
+        obj_["Cname"] = selected_country_map
     return jsonify(json.dumps(obj_))
 @app.route('/hist',methods=['GET','POST'])
 def hist():
@@ -280,6 +295,7 @@ def hist():
     if request.method == 'POST':
         selected_year_range = request.get_json()
         selected_year_range = selected_year_range['year_range']
+    print(selected_year_range)
     df_hist = df_select_country.copy()
     df_hist1 = df.copy()
     obj_ = {}
@@ -308,6 +324,10 @@ def hist():
     else:
         if selected_country_map != "":
             df_hist = df_hist1[df_hist1['ISO3'] == selected_country_map]
+            obj_ = {
+                'name': [df_hist['Country'].iloc[0]],
+                'continent': df_hist['Continent'].iloc[0],
+            }
         else:
             df_hist = df_hist1.copy()
         # df_hist = df_hist.iloc[:, 4:-1]
@@ -315,7 +335,7 @@ def hist():
             obj_ = {
                 'data':list(df_hist.iloc[:,4:-1].T.to_dict().values()),
                 'name':df_hist['Country'].tolist(),
-                'continent':df_hist['Continent'].iloc[0]
+                'continent':'World'
             }
         else:
             obj_['data'] = list(df_hist.iloc[:,4:-1].T.to_dict().values())
@@ -327,8 +347,13 @@ def get_variable_value():
 
 @app.route('/get_continent_value')
 def get_continent_value():
+    print("Hello"+selected_continent)
     return jsonify({'my_variable': selected_continent})
 
+@app.route('/get_country_value')
+def get_country_value():
+    return jsonify({'my_variable': selected_country_map})
+
 if __name__ == '__main__':
-    #app.run(debug=True, host='0.0.0.0', port=10000)
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=10000)
+    #app.run(debug=True)

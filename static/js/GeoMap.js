@@ -99,6 +99,10 @@ d3.csv("static/data/map.csv", function(d) {
         d3.select("#mydataviz").append("script").attr("src", "static/js/barHori.js");
         d3.select("#mydataviz3").selectAll("*").remove();
         d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
+        d3.select("#mydataviz2").selectAll("*").remove();
+        d3.select("#mydataviz2").append("script").attr("src", "static/js/treeCountry.js");
+        d3.select("#mydataviz4").selectAll("*").remove();
+        d3.select("#mydataviz4").append("script").attr("src", "static/js/pcp.js");
       }
     }
     else{
@@ -115,6 +119,10 @@ d3.csv("static/data/map.csv", function(d) {
         d3.select("#mydataviz").append("script").attr("src", "static/js/barChart.js");
         d3.select("#mydataviz3").selectAll("*").remove();
         d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
+        d3.select("#mydataviz2").selectAll("*").remove();
+        d3.select("#mydataviz2").append("script").attr("src", "static/js/treemap.js");
+        d3.select("#mydataviz4").selectAll("*").remove();
+        d3.select("#mydataviz4").append("script").attr("src", "static/js/pcp.js");
       }
     }
   }
@@ -176,7 +184,10 @@ d3.csv("static/data/map.csv", function(d) {
       .text(function(d, i) {
           if (i === 0) return "< " + d[1];
           if (d[1] < d[0]) return d[0];
-          return d[0] + " - " + d[1];
+          //change the format to .2s
+          if (d[0] >= 1000) return (d[0]/1000) + "K" + " - " + (d[1]/1000) + "K";
+          if (d[1] >= 1000) return d[0] + " - " + (d[1]/1000) + "K";
+          else return d[0] + " - " + d[1];
       })
       .style("fill", "white");
 })

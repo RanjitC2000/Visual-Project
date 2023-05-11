@@ -35,7 +35,7 @@ d3.json("/tree").then( function(data) {
   var color = d3.scaleOrdinal()
   .domain(["Asia", "Europe", "North America", "Africa", "Oceania", "South America"])
   //range of dark colors
-  .range(["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02"])
+  .range(['seagreen','orangered','mediumslateblue','deeppink',"#66a61e","#e6ab02"])
 
   // And a opacity scale
   var opacity = d3.scaleLinear()
@@ -63,7 +63,8 @@ d3.json("/tree").then( function(data) {
   .style("background-color", "rgb(47, 47, 47)")
   .style("color", "white")
   .style("border-radius", "5px")
-  .style("padding", "10px")
+  .style("padding", "1px")
+  .style("font-size", "15px")
 
   let mouseOver = function(d,i) {
     d3.select(this).style("fill", "darkred")
@@ -74,14 +75,15 @@ d3.json("/tree").then( function(data) {
     tooltip
       .transition()
       .duration(200)
+    console.log(i.data.name)
     tooltip
       .style("opacity", 0.9)
-      .html("Energy Generation: " + (i.value/10**6).toFixed(2) + " Million GWh")
+      .html("Techonology: "+ i.data.name+ "</br>"+"Energy Generation: " + (i.value/10**6).toFixed(2) + " Million GWh")
       .style("left", d.x - 100 + "px")
       .style("top", d.y - 700 + "px")
   }
-  let mouseLeave = function(d) {
-    d3.select(this).style("fill", function(d){ return color(d.parent.data.name)} )
+  let mouseLeave = function(d,i) {
+    d3.select(this).style("fill", function(d){ return color(i.parent.data.Cont)} )
     d3.select(this).style("opacity", function(d){ return opacity(d.data.value)})
     d3.select(this).style("stroke", "white")
     d3.select(this).style("stroke-width", 1)
@@ -170,7 +172,7 @@ d3.json("/tree").then( function(data) {
       .duration(1000)
       .attr("x", function(d){ return d.x0+5})    // +10 to adjust position (more right)
       .attr("y", function(d){ return d.y0+15})    // +20 to adjust position (lower)
-      .text(function(d){ return d.data.name})
+      .text(function(d){if (d.data.percent > 0.4){ return d.data.name}})
       .attr("font-size", function(d){
         if (d.x1 - d.x0 < 30){
           return "0px"
@@ -188,8 +190,6 @@ d3.json("/tree").then( function(data) {
     .data(root.leaves())
     .join("text")
       .on("dblclick", mouseClick)
-      .on("mouseover", mouseOver)
-      .on("mouseleave", mouseLeave)
       .style("cursor", "pointer")
 
   svg_2
@@ -201,7 +201,7 @@ d3.json("/tree").then( function(data) {
       .duration(1000)
       .attr("x", function(d){ return d.x0 + (d.x1 - d.x0)/2 - 10})
       .attr("y", function(d){ return d.y0 + (d.y1 - d.y0)/2 + 5})  
-      .text(function(d){ return d.data.percent + "%" })
+      .text(function(d){ if (d.data.percent > 0.4){return d.data.percent + "%" }})
       .attr("font-size", function(d){
         if (d.x1 - d.x0 < 30){
           return "0px"
@@ -217,8 +217,6 @@ d3.json("/tree").then( function(data) {
     .data(root.leaves())
     .join("text")
       .on("dblclick", mouseClick)
-      .on("mouseover", mouseOver)
-      .on("mouseleave", mouseLeave)
       .style("cursor", "pointer")
 
   

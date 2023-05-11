@@ -1,7 +1,7 @@
 var margin_1 = {top: 40, right: 0, bottom: 0, left: 0},
 width_1 = Math.min(window.innerWidth, window.innerHeight) * 0.55 - margin_1.left - margin_1.right,
 height_1 = Math.min(window.innerWidth, window.innerHeight) * 0.425 - margin_1.top - margin_1.bottom,
-innerRadius = 90,
+innerRadius = 50,
 outerRadius = Math.min(width_1, height_1) / 2;
 
 // append the svg object
@@ -16,7 +16,6 @@ var svg_1 = d3.select("#mydataviz")
 
 d3.json('/bar').then( function(data) {
   data = JSON.parse(data);
-  console.log(data);
   d3.select("#barTitle").text("Worldwide Total Emissions "+ data.total + " Million Metric Tons of CO2");
   data = data.data;
 
@@ -28,13 +27,13 @@ var x = d3.scaleBand()
     .domain(data.map(d => d.value1));
 var y = d3.scaleRadial()
     .range([innerRadius, outerRadius])
-    .domain([0, 150000]);
+    .domain([0, d3.max(data, d => d.value3)]);
 
 //add colors based on d.value2 there are 6 of them
 var color = d3.scaleOrdinal()
     .domain(["1", "2", "3", "4", "5", "6"])
     //use colorbrewer dark2 colors
-    .range(['mediumslateblue','orangered','seagreen','deeppink','chartreuse','gold'])
+    .range(['seagreen','orangered','mediumslateblue','deeppink','chartreuse','gold'])
 
 var tooltip = d3.select("#mydataviz")
     .append("div")
@@ -83,7 +82,7 @@ var yAxis = svg_1.append("g")
 
 var yTick = yAxis
   .selectAll("g")
-  .data(y.ticks(3).slice(1))
+  .data(y.ticks(5).slice(1))
   .join("g");
 
 yTick.append("circle")

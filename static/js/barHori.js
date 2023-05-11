@@ -14,7 +14,6 @@ var svg_1 = d3.select("#mydataviz")
 
 // Parse the Data
 d3.json("/bar").then( function(data) {
-    console.log(data);
     data = JSON.parse(data);
     if (data.Year){
         year = data.Year;
@@ -57,7 +56,7 @@ d3.json("/bar").then( function(data) {
     
     var color = d3.scaleOrdinal()
         .domain(["1", "2", "3", "4", "5", "6"])
-        .range(["#7570b3","#d95f02","#1b9e77","#e7298a","#66a61e","#e6ab02"])
+        .range(['seagreen','orangered','deeppink','mediumslateblue','gold','chartreuse'])
 
     let dblclick = function(d) {
         select_country = ""

@@ -15,7 +15,6 @@ var svg_2 = d3.select("#mydataviz2")
 
 // read json data
 d3.json("/tree").then( function(data) {
-  console.log(data)
   d3.select("#TreeTitle").text("Countries Renewable Energy Generation is " + (data.total/10**6).toFixed(2) + " Million GWh")
   let select_country = "";
 
@@ -37,7 +36,8 @@ d3.json("/tree").then( function(data) {
   var color = d3.scaleOrdinal()
     .domain(["Asia", "Europe", "North America", "Africa", "Oceania", "South America"])
     //range of dark colors
-    .range(["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02"])
+    //["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02"]
+    .range(['seagreen','orangered','mediumslateblue','deeppink',"#66a61e","#e6ab02"])
 
   // And a opacity scale
   var opacity = d3.scaleLinear()
@@ -51,7 +51,8 @@ d3.json("/tree").then( function(data) {
     .style("background-color", "rgb(47, 47, 47)")
     .style("color", "white")
     .style("border-radius", "5px")
-    .style("padding", "10px")
+    .style("padding", "1px")
+    .style("font-size", "15px")
 
   let mouseClick = function(d,i){
     select_country = i.data.name
@@ -79,9 +80,9 @@ d3.json("/tree").then( function(data) {
       .duration(200)
     tooltip
       .style("opacity", 0.9)
-      .html("Energy Generation: " + (i.value).toFixed(2) + " GWh")
+      .html("Country: "+ i.data.CName +" Energy Generation: " + (i.value).toFixed(2) + " GWh")
       .style("left", d.x - 100 + "px")
-      .style("top", d.y - 700 + "px")
+      .style("top", d.y - 750 + "px")
   }
   let mouseLeave = function(d) {
     d3.select(this).style("fill", function(d){ return color(d.parent.data.name)} )
@@ -206,8 +207,6 @@ d3.json("/tree").then( function(data) {
     .data(root.leaves())
     .join("text")
       .on("click", mouseClick)
-      .on("mouseover", mouseOver)
-      .on("mouseleave", mouseLeave)
       .style("cursor", "pointer")
 
   svg_2
@@ -237,8 +236,6 @@ d3.json("/tree").then( function(data) {
     .data(root.leaves())
     .join("text")
       .on("click", mouseClick)
-      .on("mouseover", mouseOver)
-      .on("mouseleave", mouseLeave)
       .style("cursor", "pointer")
 
   
