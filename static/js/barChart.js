@@ -12,9 +12,15 @@ var svg_1 = d3.select("#mydataviz")
 .append("g")
   .attr("transform", `translate(${width_1/2+margin_1.left + 30}, ${height_1/2+margin_1.top})`);
 
-d3.select("#barTitle").text("Worldwide Yearly Emissions");
+
 
 d3.json('/bar').then( function(data) {
+  data = JSON.parse(data);
+  console.log(data);
+  d3.select("#barTitle").text("Worldwide Total Emissions "+ data.total + " Million Metric Tons of CO2");
+  data = data.data;
+
+
 // Scales
 var x = d3.scaleBand()
     .range([0, 2 * Math.PI])

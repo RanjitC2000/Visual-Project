@@ -14,6 +14,7 @@ var svg_1 = d3.select("#mydataviz")
 
 // Parse the Data
 d3.json("/bar").then( function(data) {
+    console.log(data);
     data = JSON.parse(data);
     if (data.Year){
         year = data.Year;
@@ -68,8 +69,15 @@ d3.json("/bar").then( function(data) {
             dataType: "json",
         })
         if (select_country == "") {
-            d3.select("#mydataviz").selectAll("*").remove();
-            d3.select("#mydataviz").append("script").attr("src", "static/js/barChart.js");
+            d3.select("#my_dataviz").selectAll("*").remove();
+            d3.select("#my_dataviz").append("script").attr("src", "static/js/GeoMap.js");
+            $.ajax({url: '/get_continent_value'}).done(function (data) {
+                var s = data.my_variable;
+                if (s == ""){
+                    d3.select("#mydataviz").selectAll("*").remove();
+                    d3.select("#mydataviz").append("script").attr("src", "static/js/barChart.js");
+                }
+            })
             d3.select("#mydataviz3").selectAll("*").remove();
             d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
         }
@@ -122,6 +130,8 @@ d3.json("/bar").then( function(data) {
             .transition()
             .duration(200)
             .style("opacity", 0)
+            .style("left", 0 + "px")
+            .style("top", 0 + "px")
     }
 
 
@@ -154,7 +164,7 @@ d3.json("/bar").then( function(data) {
         .on("click",mouseClick)
         .on("mouseover", mouseOver)
         .on("mouseleave", mouseLeave)
-        .on("rightclick", dblclick)
+        .on("dblclick", dblclick)
         
         
 

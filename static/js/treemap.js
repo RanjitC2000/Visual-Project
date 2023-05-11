@@ -15,6 +15,7 @@ var svg_2 = d3.select("#mydataviz2")
 
 // read json data
 d3.json("/tree").then( function(data) {
+  console.log(data)
   d3.select("#TreeTitle").text("Countries Renewable Energy Generation is " + (data.total/10**6).toFixed(2) + " Million GWh")
   let select_country = "";
 
@@ -78,7 +79,7 @@ d3.json("/tree").then( function(data) {
       .duration(200)
     tooltip
       .style("opacity", 0.9)
-      .html("Energy Generation: " + (i.value/10**6).toFixed(2) + " Million GWh")
+      .html("Energy Generation: " + (i.value).toFixed(2) + " GWh")
       .style("left", d.x - 100 + "px")
       .style("top", d.y - 700 + "px")
   }
@@ -91,6 +92,8 @@ d3.json("/tree").then( function(data) {
       .transition()
       .duration(200)
       .style("opacity", 0)
+      .style("left", 0 + "px")
+      .style("top", 0 + "px")
   }
 
 
@@ -101,7 +104,7 @@ d3.json("/tree").then( function(data) {
     .data(root.leaves())
     .join("rect")
       .transition()
-      .duration(1000)
+      .duration(600)
       .attr('x', function (d) { return d.x0; })
       .attr('y', function (d) { return d.y0; })
       .attr('width', function (d) { return d.x1 - d.x0; })
@@ -170,7 +173,7 @@ d3.json("/tree").then( function(data) {
     .enter()
     .append("text")
       .transition()
-      .duration(1000)
+      .duration(600)
       .attr("x", function(d){ return d.x0+5})    // +10 to adjust position (more right)
       .attr("y", function(d){ return d.y0+15})    // +20 to adjust position (lower)
       .text(function(d){if (d.data.percent > 0.4){ return d.data.name}})
@@ -213,7 +216,7 @@ d3.json("/tree").then( function(data) {
     .enter()
     .append("text")
       .transition()
-      .duration(1000)
+      .duration(600)
       .attr("x", function(d){ return d.x0 + (d.x1 - d.x0)/2 - 10})
       .attr("y", function(d){ return d.y0 + (d.y1 - d.y0)/2 + 5})  
       .text(function(d){

@@ -1,3 +1,4 @@
+
 /* CSS for container div */
 .container {
     display: flex;
@@ -24,7 +25,7 @@ padding: 10px;
 box-sizing: border-box;
 }
 .visualizationwithmap {
-flex: 0 0 32%; /* Adjust to desired width of each visualization */
+flex: 0 0 31.5%; /* Adjust to desired width of each visualization */
 height: 48%;
 padding: 10px;
 /*black border*/

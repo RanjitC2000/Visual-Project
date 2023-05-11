@@ -63,7 +63,7 @@ d3.csv("static/data/map.csv", function(d) {
       .html("Country : " + d.properties.name +"<br/>"+ " Emmisions : " + (data.get(d.id) ? data.get(d.id) + " Million Metric tons of CO2" : "N/A"))
       //postion to wher the mouse is
       .style("left", error.x - 100 + "px")
-      .style("top", error.y - 325 + "px")
+      .style("top", error.y - 425 + "px")
   }
 
   let mouseLeave = function(error,d) {
@@ -79,6 +79,8 @@ d3.csv("static/data/map.csv", function(d) {
       .transition()
       .duration(200)
       .style("opacity", 0)
+      .style("left", 0 + "px")
+      .style("top", 0 + "px")
   }
 
   //on clicking a country console log the country name
@@ -155,9 +157,9 @@ d3.csv("static/data/map.csv", function(d) {
       ls_h = 20;
 
   legend_entry.append("rect")
-      .attr("x", 20)
+      .attr("x", -50)
       .attr("y", function(d, i) {
-          return height - (i * ls_h) - 2 * ls_h;
+          return height + 50 - (i * ls_h) - 2 * ls_h;
       })
       .attr("width", ls_w)
       .attr("height", ls_h)
@@ -167,13 +169,14 @@ d3.csv("static/data/map.csv", function(d) {
       .style("opacity", 0.8);
 
   legend_entry.append("text")
-      .attr("x", 50)
+      .attr("x", -20)
       .attr("y", function(d, i) {
-          return height - (i * ls_h) - ls_h - 6;
+          return height + 50 - (i * ls_h) - ls_h - 4;
       })
       .text(function(d, i) {
           if (i === 0) return "< " + d[1];
           if (d[1] < d[0]) return d[0];
           return d[0] + " - " + d[1];
-      });
+      })
+      .style("fill", "white");
 })

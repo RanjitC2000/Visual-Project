@@ -33,9 +33,9 @@ d3.json("/tree").then( function(data) {
 
   // prepare a color scale
   var color = d3.scaleOrdinal()
-    .domain(["Asia", "Europe", "North America", "Africa", "Oceania", "South America"])
-    //range of dark colors
-    .range([ "#402D54", "#D18975", "#8FD175", "#D1B275", "#D175E8", "#D1D175"])
+  .domain(["Asia", "Europe", "North America", "Africa", "Oceania", "South America"])
+  //range of dark colors
+  .range(["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02"])
 
   // And a opacity scale
   var opacity = d3.scaleLinear()
@@ -89,6 +89,8 @@ d3.json("/tree").then( function(data) {
       .transition()
       .duration(200)
       .style("opacity", 0)
+      .style("left", 0 + "px")
+      .style("top", 0 + "px")
   }
 
 
@@ -104,7 +106,7 @@ d3.json("/tree").then( function(data) {
       .attr('width', function (d) { return d.x1 - d.x0; })
       .attr('height', function (d) { return d.y1 - d.y0; })
       .style("stroke", "white")
-      .style("fill", function(d){ return color(d.parent.data.name)} )
+      .style("fill", function(d){ return color(d.parent.data.Cont)} )
       .style("opacity", function(d){ return opacity(d.data.value)})
       // .on("mouseover", function(d) {
       //   d3.select(this).style("fill", "#F7F79F")

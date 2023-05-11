@@ -4,8 +4,13 @@ parentDivHeight2 = document.getElementById("Viz1").clientHeight - 50,
 width_3 = parentDivWidth2 - margin_3.left - margin_3.right,
 height_3 = parentDivHeight2 - margin_3.top - margin_3.bottom;
 
+var container = document.getElementById('mydataviz3');
+if (container.querySelector('svg')) {
+  // If there is, remove it
+  container.removeChild(container.querySelector('svg'));
+}
 // append the svg object to the body of the page
-var svg_3 = d3.select("#mydataviz3")
+var svg_3 = d3.select(container)
   .append("svg")
     .attr("width", width_3 + margin_3.left + margin_3.right)
     .attr("height", height_3 + margin_3.top + margin_3.bottom)
@@ -19,19 +24,28 @@ d3.json("/hist").then(function(data) {
   data_name = data.name;
   //if data.Industry exists then data_industry = data.Industry
   if (data_name.length == 1 ){
+
     if (data.Industry) {
       data_industry = data.Industry;
       d3.select("#histTitle").text(data_industry + " Industry of " + data_name[0] + "'s Yearly Emmisions in Millions of Metric tons of CO2");
     }
     else{
-    d3.select("#histTitle").text(data_name[0] + "'s Yearly Emmisions in Millions of Metric tons of CO2");
+    d3.select("#histTitle").text(data_name[0]+ "'s Yearly Emmisions in Millions of Metric tons of CO2");
     }
   }
   else{
     d3.select("#histTitle").text("Worldwide Yearly Emissions in Millions of Metric tons of CO2");
   }
+  var colors ={
+    'Asia': 'seagreen',
+    'Europe': 'orangered',
+    'North America': 'mediumslateblue',
+    'Africa': 'deeppink',
+    'Oceania': 'chartreuse',
+    'South America': 'gold'
+  }
+  var color = colors[data.continent];
   data = data.data;
-  console.log(data_name);
   let numColumns = Object.keys(data[0]).length; // assuming all objects in the array have the same keys
   let sums = {};
   let selected_year_range = "";
@@ -97,13 +111,15 @@ d3.json("/hist").then(function(data) {
       .style("opacity", 0.9)
       .html("Emissions: " + (d).toFixed(2) + " Million Metric Tons")
       .style("left", error.x - 1200 + "px")
-      .style("top", error.y - 325 + "px")
+      .style("top", error.y - 400 + "px")
   }
   let mouseLeave = function(d) {
     tooltip
       .transition()
       .duration(200)
       .style("opacity", 0)
+      .style("left", 0 + "px")
+      .style("top", 0 + "px")
   }
 
   svg_3.append("g")
@@ -126,7 +142,7 @@ d3.json("/hist").then(function(data) {
       .attr("y", function(d) { return y(0); })
       .attr("width", x.bandwidth())
       .attr("height", function(d) { return height_3 - y(0); })
-      .style("fill", "seagreen")
+      .style("fill", color)
       .transition()
       .duration(500)
       .attr("y", function(d) { return y(d); })

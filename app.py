@@ -21,6 +21,7 @@ selected_country_map = ""
 selected_industry_hist = ""
 selected_country_tree = "-1"
 selected_year_range = ""
+selected_continent = ""
 year_key = {1995:0,1999:1,2003:2,2007:3,2011:4,2015:5}
 treemap = {}
 
@@ -32,6 +33,9 @@ df_land = pd.read_csv('static/data/Land_Cover_Accounts.csv')
 df_land = df_land[df_land['ISO2'].notnull()]
 df_land = df_land[df_land['Climate_Influence'] == 'Climate regulating']
 
+df_continent = pd.read_csv('static/data/Continents1.csv')
+df_continent = df_continent[['ISO3','Continent']]
+
 df_energy = pd.read_csv('static/data/Energy_Transition.csv')
 df_energy = df_energy[df_energy['Indicator'] == 'Electricity Generation']
 df_energy = df_energy[df_energy['Energy_Type'] == 'Total Renewable']
@@ -40,17 +44,18 @@ df_energy['Value'] = df_energy.iloc[:,12:].sum(axis=1)
 df_energy_Tech = df_energy.copy()
 df_energy = df_energy.groupby(['Country', 'ISO2', 'ISO3']).sum()
 df_energy.reset_index(inplace=True)
-
-df_continent = pd.read_csv('static/data/Continents1.csv')
-df_continent = df_continent[['ISO3','Continent']]
+df_energy = pd.merge(df_energy,df_continent, on='ISO3', how='left')
 
 df_energy_Tech = df_energy_Tech.groupby(['Country', 'ISO2', 'ISO3', 'Technology']).sum()
 df_energy_Tech.reset_index(inplace=True)
+df_energy_Tech = pd.merge(df_energy_Tech,df_continent, on='ISO3', how='left')
+
 
 
 df['Value'] = df.iloc[:, 12:].sum(axis=1)
 df_select_country = df.groupby(['Country', 'ISO2', 'ISO3', 'Industry']).sum()
 df_select_country.reset_index(inplace=True)
+df_select_country = pd.merge(df_select_country, df_continent, on='ISO3', how='left')
 df = df.groupby(['Country', 'ISO2','ISO3']).sum()
 df.reset_index(inplace=True)
 df = df.sort_values(by='Value', ascending=False)
@@ -67,6 +72,7 @@ df['Country'] = df['Country'].replace('Slovenia, Rep. of', 'Slovenia')
 df['Country'] = df['Country'].replace("Lao People's Dem. Rep.", 'Laos')
 df['Country'] = df['Country'].replace('Korea, Rep. of','South Korea')
 df['Country'] = df['Country'].replace('China, P.R.: Hong Kong', 'Hong Kong')
+df = pd.merge(df, df_continent, on='ISO3', how='left')
 
 df_land['Value'] = df_land.iloc[:, 11:].sum(axis=1)
 pivot_land = df_land.pivot(index='ISO3', columns='CTS_Name', values='Value')
@@ -76,7 +82,6 @@ pivot_land = pivot_land.fillna(0)
 pivot_land = pd.merge(pivot_land, df_continent, on='ISO3', how='left')
 land_cols = pivot_land.columns.to_list()
 land_cols = land_cols[1:-1]
-print(land_cols)
 
 @app.route('/')
 def index():
@@ -84,10 +89,12 @@ def index():
     global selected_industry_hist
     global selected_country_tree
     global selected_year_range
+    global selected_continent
     selected_country_map = ""
     selected_industry_hist = ""
     selected_country_tree = "-1"
     selected_year_range = ""
+    selected_continent = ""
     return render_template('index.html')
 
 @app.route('/bar', methods=['GET', 'POST'])
@@ -96,8 +103,38 @@ def bar():
     if request.method == 'POST':
         selected_industry_hist = request.get_json()
         selected_industry_hist = selected_industry_hist['industry']
+    df_bar = df_select_country.copy()
+    if selected_continent != "":
+        df_bar = df_bar[df_bar['Continent'] == selected_continent]
+        if selected_year_range != "":
+            df_bar = df_bar.iloc[:, np.r_[0:4, 5+(year_key[selected_year_range]*4):9+(year_key[selected_year_range]*4),-1]]
+            obj_ = {
+                'Country': df_bar['Continent'].iloc[0],
+                'Year': str(selected_year_range) + '-' + str(selected_year_range+4)
+            }
+            if selected_industry_hist != "":
+                df_bar = df_bar[df_bar['Industry'] == selected_industry_hist]
+                obj_['Industry'] = selected_industry_hist
+            df_bar = df_bar.iloc[:, 4:-1]
+            df_bar = df_bar.sum(axis=0)
+            df_bar = df_bar.reset_index()
+            df_bar.columns = ['value1', 'value2']
+            obj_['data'] = list(df_bar.T.to_dict().values())
+            return jsonify(json.dumps(obj_))
+        obj_ = {
+            'Country': df_bar['Continent'].iloc[0]
+        }
+        df_bar = df_bar.groupby(['Industry']).sum()
+        df_bar = df_bar.reset_index()
+        df_bar = df_bar[['Industry', 'Value']]
+        df_bar = df_bar.sort_values(by='Value', ascending=False)
+        df_bar = df_bar.iloc[:10]
+        df_bar['Value'] = df_bar['Value'].round(2)
+        df_bar.columns = ['value1', 'value2']
+        obj_['data'] = list(df_bar.T.to_dict().values())
+        return jsonify(json.dumps(obj_))
     if selected_country_map != "":
-        df_bar = df_select_country[df_select_country['ISO3'] == selected_country_map]
+        df_bar = df_bar[df_bar['ISO3'] == selected_country_map]
         if selected_year_range != "":
             df_bar = df_bar.iloc[:, np.r_[0:4, 5+(year_key[selected_year_range]*4):9+(year_key[selected_year_range]*4)]]
             obj_ = {
@@ -136,20 +173,23 @@ def bar():
         return jsonify(json.dumps(obj_))
     else:
         df_bar = df.copy()
-        df_bar = df[['Country', 'ISO3', 'Value']]
-        #add a row with its 'Country' as 'Others' and 'Value' as sum of last 30 countries
-        df_bar = df_bar.append({'Country': 'Others', 'ISO3': 'URY', 'Value': df_bar.iloc[30:]['Value'].sum()}, ignore_index=True)
-        df_bar2 = df_bar.iloc[-1]
-        df_bar = df_bar.iloc[:30]
-        df_bar = df_bar.append(df_bar2)
-        df_bar = pd.merge(df_bar, df_continent, on='ISO3', how='left')
-        #drop ISO3 column
+        if selected_continent != "":
+            df_bar = df_bar[df_bar['Continent'] == selected_continent]
+        df_bar = df_bar[['Country','Continent', 'Value']]
+        if selected_continent == "":
+            df_bar = df_bar.append({'Country': 'Others','Continent':'Oceania', 'Value': df_bar.iloc[30:]['Value'].sum()}, ignore_index=True)
+            df_bar2 = df_bar.iloc[-1]
+            df_bar = df_bar.iloc[:30]
+            df_bar = df_bar.append(df_bar2)
         df_bar = df_bar[['Country', 'Continent', 'Value']]
-        #move the first row to the last row
         df_bar = df_bar.append(df_bar.iloc[0])
         df_bar = df_bar.iloc[1:]
         df_bar.columns = ['value1', 'value2', 'value3']
-    return jsonify(df_bar.to_dict(orient='records'))
+        obj_ = {
+            'data': list(df_bar.T.to_dict().values()),
+            'total': round(df_bar['value3'].sum(),2)
+        }
+    return jsonify(json.dumps(obj_))
 
 df_map = df.copy()
 df_pop = pd.read_csv('static/data/pop.csv')
@@ -177,10 +217,13 @@ def tree():
     if request.method == 'POST':
         selected_country_tree = request.get_json()
         selected_country_tree = selected_country_tree['key']
+    df_tree = df_energy_Tech.copy()
+    if selected_continent != "":
+        df_tree = df_tree[df_tree['Continent'] == selected_continent]
     if selected_country_tree != "-1":
-        df_tree = df_energy_Tech[df_energy_Tech['ISO2'] == selected_country_tree]
+        df_tree = df_tree[df_tree['ISO2'] == selected_country_tree]
         selected_country_tree_name = df_tree['Country'].iloc[0]
-        print(selected_country_tree_name)
+        selected_continent_tree_name = df_tree['Continent'].iloc[0]
         df_tree = df_tree[['Technology', 'Value']]
         df_tree['Value'] = df_tree['Value'].round(2)
         df_tree.columns = ['name', 'value']
@@ -189,11 +232,12 @@ def tree():
             value = df_tree[df_tree['name'] == tech]['value'].values[0]
             percent = round(value * 100/ df_tree['value'].sum(),2)
             children.append({'name': tech, 'value': value, 'percent': percent})
-        treemap = {"children": children, "Cname": selected_country_tree_name, "total": round(df_tree['value'].sum(),2)}
+        treemap = {"children": children, "Cont":selected_continent_tree_name, "Cname": selected_country_tree_name, "total": round(df_tree['value'].sum(),2)}
     else:
         df_tree = df_energy.copy()
-        df_tree = pd.merge(df_tree, df_continent, on='ISO3', how='left')
         df_tree = df_tree[['Country','ISO2', 'Value', 'Continent']]
+        if selected_continent != "":
+            df_tree = df_tree[df_tree['Continent'] == selected_continent]
         df_tree['Value'] = df_tree['Value'].round(2)
         df_tree = df_tree.sort_values(by='Value', ascending=False)
         children = []
@@ -210,8 +254,18 @@ def tree():
 
 continents = {'Asia':0,'Europe':1,'Africa':2,'North America':3,'South America':4,'Oceania':5}
 
-@app.route('/pcp')
+@app.route('/pcp',methods=['GET','POST'])
 def pcp():
+    global selected_country_map
+    global selected_industry_hist
+    global selected_continent
+    global selected_country_tree
+    if request.method == 'POST':
+        selected_continent = request.get_json()
+        selected_continent = selected_continent['key']
+        selected_country_tree = "-1"
+        selected_country_map = ""
+        selected_industry_hist = ""
     df_pcp = pivot_land[land_cols]
     df_pcp['color'] = pivot_land['Continent'].map(continents)
     df_pcp = df_pcp.T
@@ -226,26 +280,54 @@ def hist():
     if request.method == 'POST':
         selected_year_range = request.get_json()
         selected_year_range = selected_year_range['year_range']
+    df_hist = df_select_country.copy()
+    df_hist1 = df.copy()
+    obj_ = {}
+    if selected_continent != "":
+        df_hist = df_hist[df_hist['Continent'] == selected_continent]
+        df_hist1 = df_hist1[df_hist1['Continent'] == selected_continent]
+        obj_ = {
+            'name': [df_hist['Continent'].iloc[0]],
+            'continent': df_hist['Continent'].iloc[0]
+        }
     if selected_industry_hist != "":
-        df_hist = df_select_country[df_select_country['ISO3'] == selected_country_map]
+        if selected_country_map != "":
+            df_hist = df_hist[df_hist['ISO3'] == selected_country_map]
         df_hist = df_hist[df_hist['Industry'] == selected_industry_hist]
         # df_hist = df_hist.iloc[:, 5:-1]
-        obj_ = {
-            'data':list(df_hist.iloc[:,5:-1].T.to_dict().values()),
-            'name':df_hist['Country'].tolist(),
-            'Industry':df_hist['Industry'].tolist()
-        }
+        if not obj_:
+            obj_ = {
+                'data':list(df_hist.iloc[:,5:-1].T.to_dict().values()),
+                'name':df_hist['Country'].tolist(),
+                'continent':df_hist['Continent'].iloc[0],
+                'Industry':df_hist['Industry'].tolist()
+            }
+        else:
+            obj_['data'] = list(df_hist.iloc[:,5:-1].T.to_dict().values())
+            obj_['Industry'] = df_hist['Industry'].iloc[0]
     else:
         if selected_country_map != "":
-            df_hist = df[df['ISO3'] == selected_country_map]
+            df_hist = df_hist1[df_hist1['ISO3'] == selected_country_map]
         else:
-            df_hist = df.copy()
+            df_hist = df_hist1.copy()
         # df_hist = df_hist.iloc[:, 4:-1]
-        obj_ = {
-            'data':list(df_hist.iloc[:,4:-1].T.to_dict().values()),
-            'name':df_hist['Country'].tolist()
-        }
+        if not obj_:
+            obj_ = {
+                'data':list(df_hist.iloc[:,4:-1].T.to_dict().values()),
+                'name':df_hist['Country'].tolist(),
+                'continent':df_hist['Continent'].iloc[0]
+            }
+        else:
+            obj_['data'] = list(df_hist.iloc[:,4:-1].T.to_dict().values())
     return jsonify(json.dumps(obj_))
+
+@app.route('/get_variable_value')
+def get_variable_value():
+    return jsonify({'my_variable': selected_year_range})
+
+@app.route('/get_continent_value')
+def get_continent_value():
+    return jsonify({'my_variable': selected_continent})
 
 if __name__ == '__main__':
     #app.run(debug=True, host='0.0.0.0', port=10000)
