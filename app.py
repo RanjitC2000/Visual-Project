@@ -41,6 +41,9 @@ df_energy_Tech = df_energy.copy()
 df_energy = df_energy.groupby(['Country', 'ISO2', 'ISO3']).sum()
 df_energy.reset_index(inplace=True)
 
+df_continent = pd.read_csv('static/data/Continents1.csv')
+df_continent = df_continent[['ISO3','Continent']]
+
 df_energy_Tech = df_energy_Tech.groupby(['Country', 'ISO2', 'ISO3', 'Technology']).sum()
 df_energy_Tech.reset_index(inplace=True)
 
@@ -66,21 +69,14 @@ df['Country'] = df['Country'].replace('Korea, Rep. of','South Korea')
 df['Country'] = df['Country'].replace('China, P.R.: Hong Kong', 'Hong Kong')
 
 df_land['Value'] = df_land.iloc[:, 11:].sum(axis=1)
-pivot_land = df_land.pivot(index='Country', columns='CTS_Name', values='Value')
+pivot_land = df_land.pivot(index='ISO3', columns='CTS_Name', values='Value')
 pivot_land.reset_index(inplace=True)
 pivot_land.columns.name = None
 pivot_land = pivot_land.fillna(0)
+pivot_land = pd.merge(pivot_land, df_continent, on='ISO3', how='left')
 land_cols = pivot_land.columns.to_list()
-land_cols = land_cols[1:]
-
-scalar = StandardScaler()
-mixmaxscalar = MinMaxScaler()
-scaled_df = scalar.fit_transform(pivot_land[land_cols])
-scaled_df = pd.DataFrame(scaled_df, columns=land_cols)
-scaled_df = pd.DataFrame(mixmaxscalar.fit_transform(scaled_df), columns=land_cols)
-
-kmeans = KMeans(n_clusters= 3)
-kmeans_res = kmeans.fit_predict(scaled_df)
+land_cols = land_cols[1:-1]
+print(land_cols)
 
 @app.route('/')
 def index():
@@ -146,8 +142,6 @@ def bar():
         df_bar2 = df_bar.iloc[-1]
         df_bar = df_bar.iloc[:30]
         df_bar = df_bar.append(df_bar2)
-        df_continent = pd.read_csv('static/data/Continents1.csv')
-        df_continent = df_continent[['ISO3','Continent']]
         df_bar = pd.merge(df_bar, df_continent, on='ISO3', how='left')
         #drop ISO3 column
         df_bar = df_bar[['Country', 'Continent', 'Value']]
@@ -198,8 +192,6 @@ def tree():
         treemap = {"children": children, "Cname": selected_country_tree_name, "total": round(df_tree['value'].sum(),2)}
     else:
         df_tree = df_energy.copy()
-        df_continent = pd.read_csv('static/data/Continents1.csv')
-        df_continent = df_continent[['ISO3','Continent']]
         df_tree = pd.merge(df_tree, df_continent, on='ISO3', how='left')
         df_tree = df_tree[['Country','ISO2', 'Value', 'Continent']]
         df_tree['Value'] = df_tree['Value'].round(2)
@@ -216,14 +208,16 @@ def tree():
         treemap = {"children": children, "total": round(df_tree['Value'].sum(),2)}
     return jsonify(treemap)
 
+continents = {'Asia':0,'Europe':1,'Africa':2,'North America':3,'South America':4,'Oceania':5}
+
 @app.route('/pcp')
 def pcp():
     df_pcp = pivot_land[land_cols]
-    df_pcp['color'] = kmeans_res.tolist()
+    df_pcp['color'] = pivot_land['Continent'].map(continents)
     df_pcp = df_pcp.T
     obj_ = {
         'data':list(df_pcp.to_dict().values()),
-        'name':pivot_land['Country'].tolist()
+        'name':pivot_land['ISO3'].tolist()
     }
     return jsonify(json.dumps(obj_))
 @app.route('/hist',methods=['GET','POST'])
@@ -254,4 +248,5 @@ def hist():
     return jsonify(json.dumps(obj_))
 
 if __name__ == '__main__':
+    #app.run(debug=True, host='0.0.0.0', port=10000)
     app.run(debug=True)

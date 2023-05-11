@@ -16,6 +16,7 @@ var svg_1 = d3.select("#mydataviz")
 d3.json("/bar").then( function(data) {
     data = JSON.parse(data);
     if (data.Year){
+        year = data.Year;
         if (data.Country){
             if(data.Industry){
                 d3.select("#barTitle").text(data.Industry + " Industry of " + data.Country + "'s " + data.Year+" Emmisions in Millions of Metric tons of CO2");
@@ -31,6 +32,7 @@ d3.json("/bar").then( function(data) {
     else{
         d3.select("#barTitle").text(data.Country + "'s Industry Emmisions in Millions of Metric tons of CO2");
     }
+    year = data.Year;
     data = data.data;
     let select_industry = "";  
     var x = d3.scaleLinear()
@@ -56,25 +58,46 @@ d3.json("/bar").then( function(data) {
         .domain(["1", "2", "3", "4", "5", "6"])
         .range(["#7570b3","#d95f02","#1b9e77","#e7298a","#66a61e","#e6ab02"])
 
+    let dblclick = function(d) {
+        select_country = ""
+        $.ajax({
+            type: "POST",
+            url: "/map",
+            data: JSON.stringify({'key': select_country}),
+            contentType : "application/json",
+            dataType: "json",
+        })
+        if (select_country == "") {
+            d3.select("#mydataviz").selectAll("*").remove();
+            d3.select("#mydataviz").append("script").attr("src", "static/js/barChart.js");
+            d3.select("#mydataviz3").selectAll("*").remove();
+            d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
+        }
+    }
+
     let mouseClick = function(error,d) {
-            console.log(d)
+        if(year){
+
+        }
+        else{
             if (typeof d === "object") {
                 select_industry = d.value1;
             } else {
                 select_industry = d;
             }
             $.ajax({
-              type: "POST",
-              url: "/bar",
-              data: JSON.stringify({'industry': select_industry}),
-              contentType : "application/json",
-              dataType: "json",
+            type: "POST",
+            url: "/bar",
+            data: JSON.stringify({'industry': select_industry}),
+            contentType : "application/json",
+            dataType: "json",
             })
             if (select_industry != "") {
-              d3.select("#mydataviz3").selectAll("*").remove();
-              d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
+            d3.select("#mydataviz3").selectAll("*").remove();
+            d3.select("#mydataviz3").append("script").attr("src", "static/js/Histo.js");
             }
           }
+        }
     var tooltip = d3.select("#mydataviz")
         .append("div")
         .style("opacity", 0)
@@ -127,9 +150,11 @@ d3.json("/bar").then( function(data) {
         
 
     svg_1.selectAll("rect")
-        .on("click", mouseClick)
+        //do mouseclick if there isnt another click within 250ms
+        .on("click",mouseClick)
         .on("mouseover", mouseOver)
         .on("mouseleave", mouseLeave)
+        .on("rightclick", dblclick)
         
         
 
@@ -150,9 +175,10 @@ d3.json("/bar").then( function(data) {
     //add click event to the y axis tick labels
     svg_1.selectAll(".myYaxis")
         .selectAll("text")
-        .on("click", mouseClick)
+        .on("click",mouseClick)
         .on("mouseover", mouseOver)
         .on("mouseleave", mouseLeave)
+        .on("dblclick", dblclick)
 
     
 

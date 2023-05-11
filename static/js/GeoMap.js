@@ -139,22 +139,41 @@ d3.csv("static/data/map.csv", function(d) {
       .on("mouseleave", mouseLeave )
       .on("click", mouseClick )
 
-  //Add legend for color scale
-  var x = d3.scaleLinear()
-    .domain([0, 1000000])
-    .range([0, 300]);
+  const legend = svg.append("g")
+      .attr("id", "legend");
 
-  svg.append("g")
-    .attr("class", "legendLinear")
-    .attr("transform", "translate(0,40)");
+  const legend_entry = legend.selectAll("g.legend")
+      .data(colorScale.range().map(function(d) {
+          d = colorScale.invertExtent(d);
+          if (d[0] == null) d[0] = 0;
+          return d;
+      }))
+      .enter().append("g")
+      .attr("class", "legend_entry");
 
-  var legendLinear = d3.legendColor()
-    .shapeWidth(30)
-    .cells(7)
-    .orient('horizontal')
-    .scale(colorScale);
+  const ls_w = 20,
+      ls_h = 20;
 
-  svg.select(".legendLinear")
-    .call(legendLinear);
+  legend_entry.append("rect")
+      .attr("x", 20)
+      .attr("y", function(d, i) {
+          return height - (i * ls_h) - 2 * ls_h;
+      })
+      .attr("width", ls_w)
+      .attr("height", ls_h)
+      .style("fill", function(d,i) {
+          return colorScale(d[0]);
+      })
+      .style("opacity", 0.8);
 
+  legend_entry.append("text")
+      .attr("x", 50)
+      .attr("y", function(d, i) {
+          return height - (i * ls_h) - ls_h - 6;
+      })
+      .text(function(d, i) {
+          if (i === 0) return "< " + d[1];
+          if (d[1] < d[0]) return d[0];
+          return d[0] + " - " + d[1];
+      });
 })

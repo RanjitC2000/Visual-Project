@@ -125,6 +125,9 @@ svg_1.append("g")
   svg_1.selectAll("text")
     .on("mouseover", mouseOver)
     .on("mouseleave", mouseLeave)
+
+  //Add legend in the center of the chart showing the colors as Continents
+  
 });
 
 

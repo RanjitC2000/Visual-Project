@@ -5,11 +5,14 @@ d3.json('/pcp').then(function(data) {
   width_4 = parentDivWidth2 - margin_4.left - margin_4.right,
   height_4 = parentDivHeight2 - margin_4.top - margin_4.bottom;
 
-  plot_height = height_4;
-  plot_width = width_4 + 130;
+  plot_height = height_4 - 30;
+  plot_width = width_4 + 140;
 
   data = JSON.parse(data);
-  var color = ['seagreen','orangered','mediumslateblue']
+  console.log(data)
+  let select_cont = "";
+  var color = ['seagreen','orangered','deeppink','mediumslateblue','gold','chartreuse']
+  var selected_continent = {'seagreen': 'Asia', 'orangered': 'Europe', 'mediumslateblue': 'Africa', 'deeppink': 'North America', 'chartreuse': 'South America', 'gold': 'Oceania'}
   dimensions = Object.keys(data['data'][0]).filter(function(d){ return d != 'color' })
 
   var categories = ['base_egg_steps','base_happiness','experience_growth','percentage_male','type1', 'type2','generation', 'is_legendary']
@@ -58,6 +61,15 @@ d3.json('/pcp').then(function(data) {
       tooltip.html("Country " + data['name'][data.data.indexOf(i)])
           .style("left", (d.x - 800) + "px")
           .style("top", (d.y-700) + "px");
+
+      //highlight the legend of the cluster that is selected
+        d3.selectAll(".legend")
+            .transition().duration(200)
+            .style("opacity", "0.2")
+
+        d3.selectAll(".legendnumber" + selected)
+            .transition().duration(200)
+            .style("opacity", "1")
   }
 
   var doNotHighlight = function(event,d){
@@ -72,6 +84,12 @@ d3.json('/pcp').then(function(data) {
       tooltip.transition()
           .duration(500)
           .style("opacity", 0);
+
+
+        //highlight the legend of the cluster that is selected
+        d3.selectAll(".legend")
+            .transition().duration(200)
+            .style("opacity", "1")
   }
 
   function path(d) {
@@ -110,6 +128,43 @@ d3.json('/pcp').then(function(data) {
       .attr("y", -9)
       .text(function(d) { return d; })
       .style("fill", "white")
+
+ //show the legend below the graph
+ var legend = svg_4.selectAll(".legend")
+    .data(color)
+    .enter().append("g")
+    .attr("class", function (d,i) { return "legend " + " legendnumber" + color[i] })
+    .attr("transform", function(d, i) { return "translate(" + ((i * 118 - 100) - 600) + ","+(plot_height+20)+")"; });
+
+    legend.append("rect")
+        .attr("x", plot_width-40)
+        .attr("width", 18)
+        .attr("height", 18)
+        .style("fill", function(d, i) { return color[i]; })
+        //add a click event to console log the color of the legend that is clicked
+        .on("click", 
+        
+        function(d,i){ console.log(selected_continent[i])});
+
+    legend.append("text")
+        .attr("x", plot_width-20)
+        .attr("y", 9)
+        .attr("dy", ".35em")
+        .style("text-anchor", "start")
+        //change text color to white
+        .style("fill", "white")
+        .text(function(d, i) {
+            switch (i) {
+                case 0: return "Asia";
+                case 1: return "Europe";
+                case 2: return "Africa";
+                case 3: return "North America";
+                case 4: return "South America";
+                case 5: return "Oceania";
+            }
+        }
+    );
+
 
   // svg_4.append("text")
   //     .attr("x", (width / 2))
