@@ -78,7 +78,7 @@ d3.json("/tree").then( function(data) {
     console.log(i.data.name)
     tooltip
       .style("opacity", 0.9)
-      .html("Techonology: "+ i.data.name+ "</br>"+"Energy Generation: " + (i.value/10**6).toFixed(2) + " Million GWh")
+      .html("Techonology: "+ i.data.name+ "</br>"+"Energy Generation: " + (i.value).toFixed(2) + " GWh")
       .style("left", d.x - 100 + "px")
       .style("top", d.y - 700 + "px")
   }

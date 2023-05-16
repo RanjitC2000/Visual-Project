@@ -122,7 +122,7 @@ d3.json("/bar").then( function(data) {
             .style("opacity", 0.9)
             .html("Emissions: " + (d.value2).toFixed(2) + " Million Metric Tons of CO2")
             .style("left", error.x - 600 + "px")
-            .style("top", error.y - 300 + "px")
+            .style("top", error.y - 350 + "px")
     }
     let mouseLeave = function(d) {
         tooltip

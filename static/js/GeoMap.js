@@ -63,7 +63,7 @@ d3.csv("static/data/map.csv", function(d) {
       .html("Country : " + d.properties.name +"<br/>"+ " Emmisions : " + (data.get(d.id) ? data.get(d.id) + " Million Metric tons of CO2" : "N/A"))
       //postion to wher the mouse is
       .style("left", error.x - 100 + "px")
-      .style("top", error.y - 425 + "px")
+      .style("top", error.y - 475 + "px")
   }
 
   let mouseLeave = function(error,d) {

@@ -187,7 +187,6 @@ def bar():
             df_bar = df_bar.iloc[:30]
             df_bar = df_bar.append(df_bar2)
         df_bar = df_bar[['Country', 'Continent', 'Value']]
-        df_bar = df_bar.iloc[2:]
         df_bar = df_bar.append(df_bar.iloc[0])
         df_bar = df_bar.iloc[1:]
         df_bar.columns = ['value1', 'value2', 'value3']

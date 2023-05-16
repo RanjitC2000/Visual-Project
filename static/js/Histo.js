@@ -117,7 +117,7 @@ d3.json("/hist").then(function(data) {
       .style("opacity", 0.9)
       .html("Emissions: " + (d).toFixed(2) + " Million Metric Tons")
       .style("left", error.x - 1200 + "px")
-      .style("top", error.y - 400 + "px")
+      .style("top", error.y - 450 + "px")
   }
   let mouseLeave = function(d) {
     tooltip
